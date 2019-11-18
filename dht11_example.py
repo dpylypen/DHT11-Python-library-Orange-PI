@@ -1,5 +1,7 @@
-from pyA20.gpio import gpio
-from pyA20.gpio import port
+# from pyA20.gpio import gpio
+# from pyA20.gpio import port
+import OPi.GPIO as GPIO
+
 
 #import RPi.GPIO as GPIO
 import dht11
@@ -9,8 +11,9 @@ import datetime
 # initialize GPIO
 #gpio.setwarnings(False)
 #gpio.setmode(GPIO.BCM)
-PIN2 = port.PA6
-gpio.init()
+# PIN2 = port.PA6
+PIN2 = 7
+GPIO.setup(GPIO.BOARD)
 #gpio.cleanup()
 
 

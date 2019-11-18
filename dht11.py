@@ -1,6 +1,7 @@
 import time
-from pyA20.gpio import gpio
-from pyA20.gpio import port
+#from pyA20.gpio import gpio
+#from pyA20.gpio import port
+import OPi.GPIO as GPIO
 #import RPi
 
 
@@ -31,20 +32,31 @@ class DHT11:
 
     def __init__(self, pin):
         self.__pin = pin
+        GPIO.setmode(GPIO.BOARD)
+        GPIO.setwarnings(False)
+        GPIO.setup(self.__pin, GPIO.IN)
+        # GPIO.output(self.__pin, True)
+
+    def __send_and_sleep(self, output, sleep):
+        GPIO.output(self.__pin, output)
+        time.sleep(sleep)
 
     def read(self):
-        gpio.setcfg(self.__pin, gpio.OUTPUT)
+        # gpio.setcfg(self.__pin, gpio.OUTPUT)
+
 
         # send initial high
-        self.__send_and_sleep(gpio.HIGH, 0.05)
+        self.__send_and_sleep(GPIO.HIGH, 0.05)
 
         # pull down to low
-        self.__send_and_sleep(gpio.LOW, 0.02)
+        self.__send_and_sleep(GPIO.LOW, 0.02)
 
         # change to input using pull up
         #gpio.setcfg(self.__pin, gpio.INPUT, gpio.PULLUP)
-    gpio.setcfg(self.__pin, gpio.INPUT)
-    gpio.pullup(self.__pin, gpio.PULLUP)
+    # gpio.setcfg(self.__pin, gpio.INPUT)
+
+    # gpio.pullup(self.__pin, gpio.PULLUP)
+        GPIO.setup(self.__pin, GPIO.input,  pull_up_down=GPIO.PUD_UP)
 
 
         # collect data into an array
@@ -71,10 +83,6 @@ class DHT11:
         # ok, we have valid data, return it
         return DHT11Result(DHT11Result.ERR_NO_ERROR, the_bytes[2], the_bytes[0])
 
-    def __send_and_sleep(self, output, sleep):
-        gpio.output(self.__pin, output)
-        time.sleep(sleep)
-
     def __collect_input(self):
         # collect the data while unchanged found
         unchanged_count = 0
@@ -85,7 +93,7 @@ class DHT11:
         last = -1
         data = []
         while True:
-            current = gpio.input(self.__pin)
+            current = GPIO.input(self.__pin)
             data.append(current)
             if last != current:
                 unchanged_count = 0
@@ -106,8 +114,8 @@ class DHT11:
 
         state = STATE_INIT_PULL_DOWN
 
-        lengths = [] # will contain the lengths of data pull up periods
-        current_length = 0 # will contain the length of the previous period
+        lengths = []  # will contain the lengths of data pull up periods
+        current_length = 0  # will contain the length of the previous period
 
         for i in range(len(data)):
 
@@ -115,28 +123,28 @@ class DHT11:
             current_length += 1
 
             if state == STATE_INIT_PULL_DOWN:
-                if current == gpio.LOW:
+                if current == GPIO.LOW:
                     # ok, we got the initial pull down
                     state = STATE_INIT_PULL_UP
                     continue
                 else:
                     continue
             if state == STATE_INIT_PULL_UP:
-                if current == gpio.HIGH:
+                if current == GPIO.HIGH:
                     # ok, we got the initial pull up
                     state = STATE_DATA_FIRST_PULL_DOWN
                     continue
                 else:
                     continue
             if state == STATE_DATA_FIRST_PULL_DOWN:
-                if current == gpio.LOW:
+                if current == GPIO.LOW:
                     # we have the initial pull down, the next will be the data pull up
                     state = STATE_DATA_PULL_UP
                     continue
                 else:
                     continue
             if state == STATE_DATA_PULL_UP:
-                if current == gpio.HIGH:
+                if current == GPIO.HIGH:
                     # data pulled up, the length of this pull up will determine whether it is 0 or 1
                     current_length = 0
                     state = STATE_DATA_PULL_DOWN
@@ -144,7 +152,7 @@ class DHT11:
                 else:
                     continue
             if state == STATE_DATA_PULL_DOWN:
-                if current == gpio.LOW:
+                if current == GPIO.LOW:
                     # pulled down, we store the length of the previous pull up period
                     lengths.append(current_length)
                     state = STATE_DATA_PULL_UP
