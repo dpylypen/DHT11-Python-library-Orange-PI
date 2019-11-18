@@ -34,15 +34,18 @@ class DHT11:
         self.__pin = pin
         GPIO.setmode(GPIO.BOARD)
         GPIO.setwarnings(False)
-        GPIO.setup(self.__pin, GPIO.IN)
+        GPIO.setup(self.__pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
         # GPIO.output(self.__pin, True)
 
     def __send_and_sleep(self, output, sleep):
+        #GPIO.setup(self.__pin, GPIO.OUT)
         GPIO.output(self.__pin, output)
         time.sleep(sleep)
 
     def read(self):
         # gpio.setcfg(self.__pin, gpio.OUTPUT)
+        GPIO.cleanup()
+        GPIO.setup(self.__pin, GPIO.OUT)
 
 
         # send initial high
@@ -56,7 +59,8 @@ class DHT11:
     # gpio.setcfg(self.__pin, gpio.INPUT)
 
     # gpio.pullup(self.__pin, gpio.PULLUP)
-        GPIO.setup(self.__pin, GPIO.input,  pull_up_down=GPIO.PUD_UP)
+        GPIO.cleanup(7)
+        GPIO.setup(self.__pin, GPIO.IN,  pull_up_down=GPIO.PUD_UP)
 
 
         # collect data into an array
@@ -81,6 +85,7 @@ class DHT11:
             return DHT11Result(DHT11Result.ERR_CRC, 0, 0)
 
         # ok, we have valid data, return it
+        GPIO.cleanup(7)
         return DHT11Result(DHT11Result.ERR_NO_ERROR, the_bytes[2], the_bytes[0])
 
     def __collect_input(self):

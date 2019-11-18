@@ -13,7 +13,7 @@ import datetime
 #gpio.setmode(GPIO.BCM)
 # PIN2 = port.PA6
 PIN2 = 7
-GPIO.setup(GPIO.BOARD)
+GPIO.setmode(GPIO.BOARD)
 #gpio.cleanup()
 
 
